@@ -1,0 +1,30 @@
+# MinerU-GLMBridge .gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Runtime / temp
+proxy.log
+_slices/
+_output/
+*.log
+
+# Local model caches (large; downloaded separately)
+models/
+*.safetensors
+*.onnx
+
+# IDE / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Secrets
+.env
+*.key

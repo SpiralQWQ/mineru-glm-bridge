@@ -1,0 +1,20 @@
+# MinerU-GLMBridge — Python requirements
+
+# The two scripts in this project use only Python standard library:
+#   os, sys, json, time, subprocess, socket, urllib, threading, http.server
+#
+# However, the project orchestrates third-party tools that must be installed
+# separately (see README.md "Requirements" for full details and licenses):
+
+# --- Required for the batch converter (mineru_local_batch.py) ---
+# Slices PDFs >200MB into <=190-page chunks before upload.
+pymupdf>=1.23
+
+# --- Provided by the MinerU environment (not installed via this repo) ---
+# MinerU itself:  pip install "mineru[all]"
+#   - Backends vlm-http-client / hybrid-http-client
+#   - Bundled local models: PaddleOCR, PP-DocLayoutV2, TableMaster, UniMERNet
+#   - Auto-downloads pipeline models to models/ on first run
+#
+# --- Cloud API (no install; get a key) ---
+# GLM / Zhipu AI glm-4.6v-flashx  ->  GLM_API_KEY
