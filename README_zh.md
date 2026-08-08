@@ -139,6 +139,37 @@ setx MGB_MINERU_ENV "C:\你的\MinerU环境路径"
 python mineru_local_batch.py --limit 5
 ```
 
+## 串行稳定配置（≤16GB 内存的关键）
+
+互补模式会 fork 多个 worker 进程，低内存机器会内存耗尽。**强制串行处理**——
+更慢但内存稳定：
+
+```bash
+set MINERU_DEVICE_MODE=cpu
+set CUDA_VISIBLE_DEVICES=               # 禁用 GPU → torch/PaddleOCR 不会 OOM
+set MINERU_LMDEPLOY_DEVICE=cpu
+set MINERU_PROCESSING_WINDOW_SIZE=2     # 每次只处理 2 页
+set MINERU_API_MAX_CONCURRENT_REQUESTS=1  # 串行（并发1）
+set MINERU_PDF_RENDER_THREADS=1
+set OMP_NUM_THREADS=1
+```
+
+> 实测：串行互补模式转 109 页 PDF 约 82 分钟（2 页/约 90 秒），内存稳定 ~3.5GB。
+> `auto_convert.py` 会自动设置以上全部变量。
+
+## 复杂文档分流（云端 vs 本地）
+
+转换前预扫描把每份 PDF 标记为**普通**（有文本层、图片少）或**复杂**
+（扫描件 / 图片密集 / 数学公式）：
+
+| 类型 | 判定 | 转换方式 |
+|---|---|---|
+| 普通 | 有文本层 | 本地 hybrid-http-client（免费，本仓库） |
+| **复杂** | 无文本层 / 图片密集 / 公式 | mineru.net 云端 API（每天 1000 页额度） |
+
+`auto_convert.py` 自动跳过复杂块并记录到 `_mineru_tools/complex_list.md`，
+后续用 `mineru_day.py --complex` 走云端额度转换。
+
 ## 质量对比（实测 10 页 PDF）
 
 | 指标 | 纯 GLM | 互补 |
