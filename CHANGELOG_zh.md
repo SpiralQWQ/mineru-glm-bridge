@@ -4,6 +4,19 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)。
 
+## [0.2.1] - 2026-08-08
+
+### 新增
+- **看门狗**（`watchdog.py`）：每 30 秒写心跳 JSON，含 GLM 连接数、10 分钟内新产出、
+  `auto_convert` 进程存活、已转块数——供外部监控检测静默卡死或进程死亡。
+  路径可用 `MGB_ROOT` / `MGB_PROXY_PORT` / `MGB_HEARTBEAT` 配置。跨平台（Windows PowerShell + Unix pgrep）。
+
+### 修复
+- `mineru_local_batch.py` / `auto_convert.py` 输出嵌套：本地 `hybrid-http-client` 模式
+  生成 `{文件名}/{backend}/...` 子目录，而非 `{原名}_mineru/full.md`。现已归位为文档规定的结构。
+
+## [0.2.0] - 2026-08-08
+
 ## [0.2.0] - 2026-08-08
 
 ### 新增

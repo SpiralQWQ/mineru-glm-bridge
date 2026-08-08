@@ -39,6 +39,7 @@ MinerU (vlm-http-client / hybrid-http-client)
 |---|---|
 | `glm_mineru_proxy.py` | GLM adapter: converts MinerU's OpenAI-format requests to GLM API, injects per-task format instructions, rate-limits |
 | `mineru_local_batch.py` | Batch converter: auto-starts the proxy, slices PDFs, calls MinerU, writes isolated per-file folders |
+| `watchdog.py` | Watchdog: writes a heartbeat file every 30 s (GLM connections, fresh outputs, process alive, converted count) so an external monitor can detect stalls/deaths |
 
 ## Installation
 
@@ -173,6 +174,28 @@ A pre-scan marks each PDF as **normal** (has text layer, few images) or
 `auto_convert.py` skips complex blocks and records them in
 `_mineru_tools/complex_list.md` for later cloud conversion via
 `mineru_day.py --complex`.
+
+## Watchdog (monitor for stalls)
+
+Long serial conversions can silently stall. Run the watchdog alongside
+`auto_convert.py` — it writes a heartbeat JSON every 30 s so an external
+monitor (or you) can detect a dead or stuck process:
+
+```bash
+python watchdog.py
+```
+
+Heartbeat fields (`_mineru_tools/watchdog_heartbeat.json`):
+
+| Field | Meaning |
+|---|---|
+| `ts` | last heartbeat timestamp (stale if old) |
+| `glm_conns` | ESTABLISHED connections to the GLM proxy (0 + no outputs = stall) |
+| `fresh_outputs_10min` | `full.md` files written in the last 10 min |
+| `process_alive` | whether the `auto_convert` process is running |
+| `converted` | blocks completed so far |
+
+Paths are configurable via `MGB_ROOT` / `MGB_PROXY_PORT` / `MGB_HEARTBEAT`.
 
 ## Quality comparison (measured, 10-page PDF)
 

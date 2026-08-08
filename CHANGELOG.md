@@ -4,6 +4,20 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.2.1] - 2026-08-08
+
+### Added
+- **Watchdog** (`watchdog.py`): writes a heartbeat JSON every 30 s with GLM
+  connection count, fresh outputs in 10 min, `auto_convert` process liveness,
+  and converted-block count — so an external monitor can detect a silent stall
+  or dead process. Paths configurable via `MGB_ROOT` / `MGB_PROXY_PORT` /
+  `MGB_HEARTBEAT`. Cross-platform (Windows PowerShell + Unix pgrep).
+
+### Fixed
+- `mineru_local_batch.py` / `auto_convert.py` output nesting: local
+  `hybrid-http-client` mode generated `{file}/{backend}/...` subfolders instead
+  of `{原名}_mineru/full.md`. Now normalized to the documented layout.
+
 ## [0.2.0] - 2026-08-08
 
 ### Added

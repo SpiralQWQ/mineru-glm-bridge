@@ -37,6 +37,7 @@ MinerU (vlm-http-client / hybrid-http-client)
 | 文件 | 作用 |
 |---|---|
 | `glm_mineru_proxy.py` | GLM 适配代理：MinerU OpenAI 格式请求 → GLM API，按任务注入格式指令，串行限流 |
+| `watchdog.py` | 看门狗：每 30 秒写心跳文件（GLM 连接数/新产出/进程存活/已转块数），供外部监控检测卡死或进程死亡 |
 | `mineru_local_batch.py` | 批量转换：自动启动代理、切片 PDF、调 MinerU、输出独立子文件夹 |
 
 ## 安装（开箱即用步骤）
@@ -169,6 +170,26 @@ set OMP_NUM_THREADS=1
 
 `auto_convert.py` 自动跳过复杂块并记录到 `_mineru_tools/complex_list.md`，
 后续用 `mineru_day.py --complex` 走云端额度转换。
+
+## 看门狗（检测卡死）
+
+长串行转换可能静默卡死。让看门狗与 `auto_convert.py` 并行运行——它每 30 秒写一个心跳 JSON，供外部监控（或你）检测进程死亡或卡住：
+
+```bash
+python watchdog.py
+```
+
+心跳字段（`_mineru_tools/watchdog_heartbeat.json`）：
+
+| 字段 | 含义 |
+|---|---|
+| `ts` | 最近心跳时间戳（过旧 = 看门狗可能死了） |
+| `glm_conns` | 到 GLM 代理的 ESTABLISHED 连接数（0 + 无产出 = 卡死） |
+| `fresh_outputs_10min` | 最近 10 分钟写入的 `full.md` 数量 |
+| `process_alive` | `auto_convert` 进程是否存活 |
+| `converted` | 已完成的块数 |
+
+路径可用 `MGB_ROOT` / `MGB_PROXY_PORT` / `MGB_HEARTBEAT` 环境变量配置。
 
 ## 质量对比（实测 10 页 PDF）
 
