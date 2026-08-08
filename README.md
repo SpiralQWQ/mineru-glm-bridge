@@ -142,6 +142,38 @@ setx MGB_MINERU_ENV "C:\path\to\your\mineru-env"
 python mineru_local_batch.py --limit 5
 ```
 
+## Serial-stability config (critical on ≤16 GB RAM)
+
+Hybrid mode forks multiple worker processes; on low-RAM machines it exhausts
+memory. **Force serial processing** — slower but memory-stable:
+
+```bash
+set MINERU_DEVICE_MODE=cpu
+set CUDA_VISIBLE_DEVICES=              # disable GPU → torch/PaddleOCR won't OOM
+set MINERU_LMDEPLOY_DEVICE=cpu
+set MINERU_PROCESSING_WINDOW_SIZE=2    # 2 pages per window
+set MINERU_API_MAX_CONCURRENT_REQUESTS=1  # serial
+set MINERU_PDF_RENDER_THREADS=1
+set OMP_NUM_THREADS=1
+```
+
+> Measured: serial hybrid converts a 109-page PDF in ~82 min (2 pages / ~90 s),
+> memory stays ~3.5 GB. `auto_convert.py` sets all of these automatically.
+
+## Complex-document split (cloud vs local)
+
+A pre-scan marks each PDF as **normal** (has text layer, few images) or
+**complex** (scanned / dense images / math formulas):
+
+| Type | Detect | Convert via |
+|---|---|---|
+| Normal | text layer present | local hybrid-http-client (free) |
+| **Complex** | no text layer / dense images / formulas | mineru.net cloud API (1000 pages/day) |
+
+`auto_convert.py` skips complex blocks and records them in
+`_mineru_tools/complex_list.md` for later cloud conversion via
+`mineru_day.py --complex`.
+
 ## Quality comparison (measured, 10-page PDF)
 
 | Metric | Pure GLM | Hybrid |

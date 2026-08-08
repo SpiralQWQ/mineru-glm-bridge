@@ -21,17 +21,12 @@ import os, sys, json, time, subprocess, socket
 
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
-# ============ 路径配置（全部可用环境变量覆盖） ============
-# ROOT: 待转换 PDF 的根目录（含 plan.json 与 _mineru_tools/）
-# MINERU_ENV: MinerU 虚拟环境目录
-# BRIDGE_DIR: 本桥接项目目录（含 glm_mineru_proxy.py）
-ROOT = os.environ.get("MGB_ROOT", os.path.dirname(os.path.abspath(__file__)))
+# ============ 路径配置 ============
+ROOT = r"E:\AAA.Program\CC\AAA.Study\M.AIStudy"
 TOOLS = os.path.join(ROOT, "_mineru_tools")
 PLAN = os.path.join(TOOLS, "plan.json")
-MINERU_ENV = os.environ.get(
-    "MGB_MINERU_ENV",
-    os.path.join(os.path.expanduser("~"), ".venv", "mineru"))
-BRIDGE_DIR = os.environ.get("MGB_BRIDGE_DIR", os.path.dirname(os.path.abspath(__file__)))
+MINERU_ENV = r"E:\AAA.Program\CC\AAA.Tool\Python_Venvs\T.MinerU_DocParser_Env_v3.4"
+BRIDGE_DIR = r"E:\AAA.Program\CC\AAA.Tool\HTTP_Tools\M.MinerU_GLMBridge_HTTP_v0.1"
 PYTHON = os.path.join(MINERU_ENV, "Scripts", "python.exe")
 MINERU_CLI = os.path.join(MINERU_ENV, "Scripts", "mineru.exe")
 PROXY_SCRIPT = os.path.join(BRIDGE_DIR, "glm_mineru_proxy.py")
@@ -57,25 +52,16 @@ def is_done(out_dir):
 
 
 def read_token():
-    """读 GLM_API_KEY。
-    Windows: 从用户注册表读（处理子进程读不到 setx 后新值的坑）
-    其他平台: 直接读环境变量
-    """
-    # 先试环境变量
-    val = os.environ.get("GLM_API_KEY", "").strip()
-    if val:
-        return val
-    # Windows: 尝试从用户级注册表读
-    if sys.platform == "win32":
-        try:
-            r = subprocess.run(
-                ["powershell.exe", "-NoProfile", "-Command",
-                 "[Environment]::GetEnvironmentVariable('GLM_API_KEY','User')"],
-                capture_output=True, text=True, timeout=15)
-            return r.stdout.strip()
-        except Exception:
-            pass
-    return ""
+    """从用户环境变量读 GLM_API_KEY（Claude Code 子进程读不到 setx 后新值）"""
+    try:
+        import subprocess
+        r = subprocess.run(
+            ["powershell.exe", "-NoProfile", "-Command",
+             "[Environment]::GetEnvironmentVariable('GLM_API_KEY','User')"],
+            capture_output=True, text=True, timeout=15)
+        return r.stdout.strip()
+    except Exception:
+        return os.environ.get("GLM_API_KEY", "")
 
 
 def ensure_proxy():
@@ -115,11 +101,14 @@ def ensure_proxy():
     os.environ["MINERU_VL_SERVER"] = f"http://127.0.0.1:{PROXY_PORT}"
     os.environ["MINERU_VL_API_KEY"] = key
     os.environ["MINERU_VL_MODEL_NAME"] = "glm-4.6v-flashx"
-    # 本地专用模型用 CPU，不吃显存（VLM 在云端）
-    os.environ["MINERU_LMDEPLOY_DEVICE"] = "cpu"
-    # 限制内存占用
-    os.environ.setdefault("MINERU_PROCESSING_WINDOW_SIZE", "2")
-    os.environ.setdefault("OMP_NUM_THREADS", "2")
+    # === 串行稳定配置（实测：内存稳定不爆，代价是慢） ===
+    os.environ["MINERU_DEVICE_MODE"] = "cpu"          # 设备用 CPU
+    os.environ["MINERU_LMDEPLOY_DEVICE"] = "cpu"      # lmdeploy 用 CPU
+    os.environ["CUDA_VISIBLE_DEVICES"] = ""           # 强制禁用 GPU，避免 torch/PaddleOCR 占显存 OOM
+    os.environ["MINERU_PROCESSING_WINDOW_SIZE"] = "2"  # 每次只处理 2 页（小窗口低内存峰值）
+    os.environ["MINERU_API_MAX_CONCURRENT_REQUESTS"] = "1"  # 并发请求 1（串行）
+    os.environ["MINERU_PDF_RENDER_THREADS"] = "1"     # PDF 渲染单线程
+    os.environ["OMP_NUM_THREADS"] = "1"               # CPU 单线程
     # 绕过系统代理（Clash 对 GLM 的 SSL 抖动）
     os.environ.pop("HTTP_PROXY", None)
     os.environ.pop("HTTPS_PROXY", None)
@@ -195,11 +184,16 @@ def main():
         ensure_proxy()
 
     plan = json.load(open(PLAN, encoding="utf-8"))
+    # 兼容新旧 plan 结构：v2 用 days_normal，旧版用 days
+    days = plan.get("days_normal") or plan.get("days") or []
     blocks = []
     if day:
-        blocks = plan["days"][day - 1]["blocks"]
+        if day <= len(days):
+            blocks = days[day - 1]["blocks"]
+        else:
+            print(f"[Day {day}] 超出范围（共 {len(days)} 天）"); return 0
     else:
-        for d in plan["days"]:
+        for d in days:
             for b in d["blocks"]:
                 blocks.append(b)
 

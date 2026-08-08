@@ -4,6 +4,34 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)。
 
+## [0.2.0] - 2026-08-08
+
+### 新增
+- **自动转换脚本**（`auto_convert.py`）：
+  - 按 plan.json `days_normal` 逐天持续转换普通文档
+  - 断点续跑（跳过已转换块）+ 进度记录
+  - 每 10 块检查点，暂停等人工质量审查
+  - 复杂文档记录到 `_mineru_tools/complex_list.md`，供后续云端 API 转换
+- **串行稳定配置**：≤16GB 内存机器上互补模式 fork 多 worker 进程耗尽内存。
+  强制串行解决：
+  - `MINERU_DEVICE_MODE=cpu`、`CUDA_VISIBLE_DEVICES=""`（禁用 GPU → torch/
+    PaddleOCR 不会 OOM）
+  - `MINERU_PROCESSING_WINDOW_SIZE=2`、`MINERU_API_MAX_CONCURRENT_REQUESTS=1`、
+    `MINERU_PDF_RENDER_THREADS=1`、`OMP_NUM_THREADS=1`
+  - 实测：串行互补转 109 页约 82 分钟（2页/90秒），内存稳定 ~3.5GB
+- **复杂文档预扫描**：标记 PDF 为普通（有文本层）vs 复杂（扫描/图片密集/公式）。
+  复杂文档走 mineru.net 云端 API（每天 1000 页）；普通文档用本地 GLM 桥接。
+
+### 变更
+- `mineru_local_batch.py` 和 `auto_convert.py` 现在在 `ensure_proxy()` 中自动设置串行配置。
+- README（中/英）补充串行配置和普通/复杂分流说明。
+
+### 修复
+- 8GB GPU / 16GB 内存笔记本上 hybrid 模式 OOM（worker 进程 + 本地模型超内存）。
+- 后台进程被会话销毁杀掉：`auto_convert.py` 和 GLM 代理改为脱离进程（`Start-Process`）。
+
+## [0.1.0] - 2026-08-07
+
 ## [0.1.0] - 2026-08-07
 
 ### 新增
