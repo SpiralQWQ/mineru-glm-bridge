@@ -1,5 +1,8 @@
 # MinerU-GLMBridge
 
+![Version](https://img.shields.io/badge/version-0.2.2-blue)
+![License](https://img.shields.io/badge/license-AGPL--3.0-green)
+
 将 MinerU 文档解析桥接到 GLM（智谱 AI）云端视觉模型 —— 让普通笔记本无需 8GB+ 显卡，
 也不消耗 mineru.net 每日 1000 页额度，即可完整运行 MinerU 文档解析。
 
@@ -205,6 +208,47 @@ python watchdog.py
 
 路径可用 `MGB_ROOT` / `MGB_PROXY_PORT` / `MGB_HEARTBEAT` 环境变量配置。
 
+## 配置
+
+所有环境变量均可选——默认值开箱即用。
+
+| 变量 | 默认值 | 用途 |
+|---|---|---|
+| `MGB_ROOT` | 脚本所在目录 | 项目根目录，脚本用它解析各类路径 |
+| `MGB_TOOLS` | `{ROOT}/_mineru_tools` | 运行时目录，存放 `plan.json` 与看门狗心跳文件 |
+| `MGB_PROXY_PORT` | `8031` | GLM 代理监听端口（`http://127.0.0.1:{port}`） |
+| `MGB_HEARTBEAT` | `{MGB_TOOLS}/watchdog_heartbeat.json` | 看门狗心跳 JSON 文件路径 |
+| `MGB_MINERU_ENV` | `~/.venv/mineru` | MinerU 环境所在路径 |
+| `MGB_PROXY_USAGE_LOG` | `~/.mineru_glm_bridge/proxy_usage.log` | GLM 代理用量日志路径（额度统计） |
+| `GLM_MIN_INTERVAL` | `0.5` | 相邻 GLM 请求最小间隔（秒），遇 429 调大 |
+| `GLM_MODEL` | `glm-4.6v-flashx` | GLM 云端视觉模型名 |
+| `GLM_API_KEY` | *（空）* | 智谱 API Key，必填 |
+
+## 常见问题（FAQ）
+
+**Q：一直报 GLM HTTP 429。**
+A：代理本身已限流（同时 1 个请求）。仍出现就调大请求间隔 `GLM_MIN_INTERVAL`（秒），
+如 `set GLM_MIN_INTERVAL=1.5`。
+
+**Q：系统内存不足（RAM 耗尽）。**
+A：互补模式会 fork 多个 worker；强制串行
+（`MINERU_PROCESSING_WINDOW_SIZE=2` + `MINERU_API_MAX_CONCURRENT_REQUESTS=1` +
+`OMP_NUM_THREADS=1`）。`mineru_local_batch.py` 会自动设置以上全部变量。
+
+**Q：代理端口被占用。**
+A：用 `MGB_PROXY_PORT` 换端口，如 `set MGB_PROXY_PORT=8032`，再把 MinerU 指向
+`http://127.0.0.1:8032`，两处保持一致。
+
+**Q：互补模式为什么那么慢（30-60 秒/页）？**
+A：每页都要跑本地 OCR/版面模型 + 一次 GLM 云端往返，且限流为一次一个请求。
+用 `plan.json` 按天分块、拉长运行窗口。
+
+## 参与贡献
+
+欢迎提交 bug 报告、功能建议与 PR。较大改动请先开
+[Issue](https://github.com/SpiralQWQ/mineru-glm-bridge/issues) 讨论，并保持
+与双许可（AGPL-3.0 / 商业授权）兼容。
+
 ## 质量对比（实测 10 页 PDF）
 
 | 指标 | 纯 GLM | 互补 |
@@ -237,16 +281,16 @@ MinerU-GLMBridge **不重复实现**文档解析——它编排下面这些成�
 - 智谱 `GLM_API_KEY`（`glm-4.6v-flashx` 免费额度）。
 - 互补模式需约 3 GB 空闲系统内存（本地 pipeline 模型跑 CPU）。
 
-## 💛 支持一下
+## 支持一下
 
-如果这个项目帮到过你，可以请我喝杯咖啡 ☕。打赏全凭心意，不打赏也完全没关系——项目永远免费开源。做开源这么久，每一份小小的支持都能让我高兴很久。
+如果这个项目帮到过你，可以请我喝杯咖啡。打赏全凭心意，不打赏也完全没关系——项目永远免费开源。做开源这么久，每一份小小的支持都能让我高兴很久。
 
 <p align="center">
   <img src="assets/donate_wechat.jpg" alt="微信收款" width="200">
   <img src="assets/donate_alipay.jpg" alt="支付宝收款" width="200">
 </p>
 
-<p align="center"><i>能一路读到这里的你，谢谢。🙏</i></p>
+<p align="center"><i>能一路读到这里的你，谢谢。</i></p>
 
 ## 许可
 

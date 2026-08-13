@@ -66,7 +66,7 @@ mineru -p 文档.pdf -o 输出 -b hybrid-http-client -u http://127.0.0.1:8031
 | `MINERU_VL_MODEL_NAME` | `glm-4.6v-flashx` | 视觉模型 |
 | `MINERU_LMDEPLOY_DEVICE` | `cpu` | 本地不吃显存 |
 | `MINERU_PROCESSING_WINDOW_SIZE` | `2` | 限制内存占用 |
-| `OMP_NUM_THREADS` | `2` | 限制 CPU 线程 |
+| `OMP_NUM_THREADS` | `1` | 限制 CPU 线程（串行） |
 
 ## 排障
 

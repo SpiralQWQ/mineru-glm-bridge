@@ -1,5 +1,8 @@
 # MinerU-GLMBridge
 
+![Version](https://img.shields.io/badge/version-0.2.2-blue)
+![License](https://img.shields.io/badge/license-AGPL--3.0-green)
+
 Bridge MinerU's document parsing to GLM (Zhipu AI) cloud vision models — so
 consumer laptops can run full MinerU parsing without an 8GB+ GPU and without
 burning the mineru.net daily 1000-page quota.
@@ -210,6 +213,49 @@ Heartbeat fields (`_mineru_tools/watchdog_heartbeat.json`, dir configurable via 
 | `converted` | blocks completed so far |
 
 Paths are configurable via `MGB_ROOT` / `MGB_PROXY_PORT` / `MGB_HEARTBEAT`.
+
+## Configuration
+
+All environment variables are optional — the defaults work out of the box.
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `MGB_ROOT` | script directory | Project root the scripts use to resolve paths |
+| `MGB_TOOLS` | `{ROOT}/_mineru_tools` | Runtime directory for `plan.json` and the watchdog heartbeat file |
+| `MGB_PROXY_PORT` | `8031` | Port the GLM proxy listens on (`http://127.0.0.1:{port}`) |
+| `MGB_HEARTBEAT` | `{MGB_TOOLS}/watchdog_heartbeat.json` | Watchdog heartbeat JSON file path |
+| `MGB_MINERU_ENV` | `~/.venv/mineru` | Path to the MinerU environment |
+| `MGB_PROXY_USAGE_LOG` | `~/.mineru_glm_bridge/proxy_usage.log` | GLM proxy usage log path (quota tracking) |
+| `GLM_MIN_INTERVAL` | `0.5` | Minimum seconds between GLM requests (raise if you hit HTTP 429) |
+| `GLM_MODEL` | `glm-4.6v-flashx` | GLM cloud vision model name |
+| `GLM_API_KEY` | *(empty)* | Zhipu AI API key — required |
+
+## FAQ
+
+**Q: I keep getting GLM HTTP 429 errors.**
+A: The proxy already rate-limits requests (1 at a time). If 429s persist, raise the
+interval between calls with `GLM_MIN_INTERVAL` (in seconds), e.g. `set GLM_MIN_INTERVAL=1.5`.
+
+**Q: My machine runs out of memory (system RAM).**
+A: Hybrid mode forks multiple workers; force serial processing with
+`MINERU_PROCESSING_WINDOW_SIZE=2` + `MINERU_API_MAX_CONCURRENT_REQUESTS=1` +
+`OMP_NUM_THREADS=1`. `mineru_local_batch.py` sets all of these automatically.
+
+**Q: The proxy port is already in use.**
+A: Change the port with `MGB_PROXY_PORT`, e.g. `set MGB_PROXY_PORT=8032`, then point
+MinerU at `http://127.0.0.1:8032` and keep the two values in sync.
+
+**Q: Why does hybrid mode take so long (30-60 s/page)?**
+A: Every page goes through local OCR/layout models plus a GLM cloud round-trip,
+rate-limited to one request at a time. Split the job across days with `plan.json`
+and extend the runtime window.
+
+## Contribution
+
+Bug reports, feature ideas and pull requests are welcome. Please open an
+[Issue](https://github.com/SpiralQWQ/mineru-glm-bridge/issues) first to discuss
+larger changes, and keep contributions compatible with the dual AGPL-3.0 /
+commercial licensing.
 
 ## Quality comparison (measured, 10-page PDF)
 

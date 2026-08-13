@@ -64,7 +64,7 @@ python mineru_local_batch.py --dry-run      # 预览不执行
 
 | 问题 | 解决 |
 |---|---|
-| GLM HTTP 429 | 代理已限流；若仍出现，增大 `MINERU_MIN_INTERVAL` 间隔 |
+| GLM HTTP 429 | 代理已限流；若仍出现，增大 `GLM_MIN_INTERVAL` 间隔 |
 | MinerU 连不上代理 | 确认代理在 127.0.0.1:8031，`curl http://127.0.0.1:8031/v1/models` |
 | 输出 md 为空 | 多为 GLM 未按格式输出，看代理日志 `task=` 是否正确识别 |
 | CUDA OOM | 设 `MINERU_LMDEPLOY_DEVICE=cpu` |
