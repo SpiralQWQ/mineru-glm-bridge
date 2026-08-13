@@ -199,7 +199,7 @@ monitor (or you) can detect a dead or stuck process:
 python watchdog.py
 ```
 
-Heartbeat fields (`_mineru_tools/watchdog_heartbeat.json`):
+Heartbeat fields (`_mineru_tools/watchdog_heartbeat.json`, dir configurable via `MGB_TOOLS`):
 
 | Field | Meaning |
 |---|---|

@@ -21,7 +21,7 @@ sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 GLM_URL = "https://open.bigmodel.cn/api/paas/v4/chat/completions"
 MODEL = os.environ.get("GLM_MODEL", "glm-4.6v-flashx")
-PORT = int(os.environ.get("PROXY_PORT", "8031"))
+PORT = int(os.environ.get("MGB_PROXY_PORT", "8031"))
 LOG_PATH = os.environ.get("MGB_PROXY_LOG",
                           os.path.join(os.path.expanduser("~"), ".mineru_glm_bridge", "proxy_req.log"))
 USAGE_LOG = os.environ.get(

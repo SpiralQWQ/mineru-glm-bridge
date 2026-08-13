@@ -26,7 +26,7 @@ sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 # MINERU_ENV: MinerU 虚拟环境目录
 # BRIDGE_DIR: 本桥接项目目录（含 glm_mineru_proxy.py）
 ROOT = os.environ.get("MGB_ROOT", os.path.dirname(os.path.abspath(__file__)))
-TOOLS = os.path.join(ROOT, "_mineru_tools")
+TOOLS = os.environ.get("MGB_TOOLS", os.path.join(ROOT, "_mineru_tools"))
 PLAN = os.path.join(TOOLS, "plan.json")
 MINERU_ENV = os.environ.get(
     "MGB_MINERU_ENV",
@@ -35,7 +35,7 @@ BRIDGE_DIR = os.environ.get("MGB_BRIDGE_DIR", os.path.dirname(os.path.abspath(__
 PYTHON = os.path.join(MINERU_ENV, "Scripts", "python.exe")
 MINERU_CLI = os.path.join(MINERU_ENV, "Scripts", "mineru.exe")
 PROXY_SCRIPT = os.path.join(BRIDGE_DIR, "glm_mineru_proxy.py")
-PROXY_PORT = 8031
+PROXY_PORT = int(os.environ.get("MGB_PROXY_PORT", "8031"))
 OUTPUT_DIR = os.path.join(ROOT, "_output")
 
 EXTS = ('.pdf', '.pptx', '.doc', '.docx')
@@ -55,7 +55,7 @@ def build_plan_from_files():
     """
     found = []
     for root, dirs, files in os.walk(ROOT):
-        dirs[:] = [d for d in dirs if d not in ("_output", "_mineru_tools")]
+        dirs[:] = [d for d in dirs if d not in (os.path.basename(OUTPUT_DIR), os.path.basename(TOOLS))]
         for fn in files:
             if fn.lower().endswith(EXTS):
                 found.append(os.path.join(root, fn))

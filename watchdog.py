@@ -11,9 +11,10 @@ mineru-glm-bridge 看门狗 — 检测转换是否卡死/推进，写心跳文�
   5. 心跳时间戳（检测卡死：无心跳超时 = 卡住）
 
 环境变量:
-  MGB_ROOT          待转换 PDF 根目录（含 _mineru_tools/），默认脚本所在目录
+  MGB_ROOT          待转换 PDF 根目录，默认脚本所在目录
+  MGB_TOOLS         工具目录（plan.json/心跳等所在），默认 <ROOT>/_mineru_tools
   MGB_PROXY_PORT    GLM 代理端口，默认 8031
-  MGB_HEARTBEAT     心跳文件路径，默认 <ROOT>/_mineru_tools/watchdog_heartbeat.json
+  MGB_HEARTBEAT     心跳文件路径，默认 <TOOLS>/watchdog_heartbeat.json
 
 用法: python watchdog.py
 """
@@ -22,7 +23,7 @@ import os, sys, json, time, subprocess, glob
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 ROOT = os.environ.get("MGB_ROOT", os.path.dirname(os.path.abspath(__file__)))
-TOOLS = os.path.join(ROOT, "_mineru_tools")
+TOOLS = os.environ.get("MGB_TOOLS", os.path.join(ROOT, "_mineru_tools"))
 HEARTBEAT = os.environ.get(
     "MGB_HEARTBEAT", os.path.join(TOOLS, "watchdog_heartbeat.json"))
 PROGRESS = os.path.join(TOOLS, "auto_progress.json")

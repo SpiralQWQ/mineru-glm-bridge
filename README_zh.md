@@ -193,7 +193,7 @@ set OMP_NUM_THREADS=1
 python watchdog.py
 ```
 
-心跳字段（`_mineru_tools/watchdog_heartbeat.json`）：
+心跳字段（`_mineru_tools/watchdog_heartbeat.json`，目录可用 `MGB_TOOLS` 配置）：
 
 | 字段 | 含义 |
 |---|---|
