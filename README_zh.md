@@ -140,6 +140,33 @@ setx MGB_MINERU_ENV "C:\你的\MinerU环境路径"
 python mineru_local_batch.py --limit 5
 ```
 
+### 批量转换计划（`plan.json`）
+
+`mineru_local_batch.py` 从 `{ROOT}/_mineru_tools/plan.json` 读取转换计划，指定
+要转哪些文件、如何分块（页码区间 / 按天调度）。
+
+- **没计划？** 若 `plan.json` 缺失，脚本自动扫描 `{ROOT}` 下的
+  `.pdf/.pptx/.doc/.docx` 文件，整篇转换——拿来即用。
+- **要精细控制？** 自己建该文件，格式：
+
+```json
+{
+  "days_normal": [
+    {
+      "day": 1,
+      "blocks": [
+        {"file": "C:\\docs\\book.pdf", "start": 1, "end": 200, "pages": 200}
+      ]
+    }
+  ]
+}
+```
+
+每个 `block` 是一个分块：`file`（绝对路径）、`start`/`end`（1 起始页码区间，
+仅用于命名输出子目录）、`pages`（用于进度汇总）。同文件多块时输出到
+`{文件名}_mineru/p{start}-{end}` 子目录；单块直接输出到 `{文件名}_mineru/`。
+先用 `--dry-run` 预览将要转换的内容。
+
 ## 串行稳定配置（≤16GB 内存的关键）
 
 互补模式会 fork 多个 worker 进程，低内存机器会内存耗尽。**强制串行处理**——
@@ -156,24 +183,11 @@ set OMP_NUM_THREADS=1
 ```
 
 > 实测：串行互补模式转 109 页 PDF 约 82 分钟（2 页/约 90 秒），内存稳定 ~3.5GB。
-> `auto_convert.py` 会自动设置以上全部变量。
-
-## 复杂文档分流（云端 vs 本地）
-
-转换前预扫描把每份 PDF 标记为**普通**（有文本层、图片少）或**复杂**
-（扫描件 / 图片密集 / 数学公式）：
-
-| 类型 | 判定 | 转换方式 |
-|---|---|---|
-| 普通 | 有文本层 | 本地 hybrid-http-client（免费，本仓库） |
-| **复杂** | 无文本层 / 图片密集 / 公式 | mineru.net 云端 API（每天 1000 页额度） |
-
-`auto_convert.py` 自动跳过复杂块并记录到 `_mineru_tools/complex_list.md`，
-后续用 `mineru_day.py --complex` 走云端额度转换。
+> `mineru_local_batch.py` 会自动设置以上全部变量。
 
 ## 看门狗（检测卡死）
 
-长串行转换可能静默卡死。让看门狗与 `auto_convert.py` 并行运行——它每 30 秒写一个心跳 JSON，供外部监控（或你）检测进程死亡或卡住：
+长串行转换可能静默卡死。让看门狗与 `mineru_local_batch.py` 并行运行——它每 30 秒写一个心跳 JSON，供外部监控（或你）检测进程死亡或卡住：
 
 ```bash
 python watchdog.py
@@ -186,7 +200,7 @@ python watchdog.py
 | `ts` | 最近心跳时间戳（过旧 = 看门狗可能死了） |
 | `glm_conns` | 到 GLM 代理的 ESTABLISHED 连接数（0 + 无产出 = 卡死） |
 | `fresh_outputs_10min` | 最近 10 分钟写入的 `full.md` 数量 |
-| `process_alive` | `auto_convert` 进程是否存活 |
+| `process_alive` | `mineru_local_batch.py` 进程是否存活 |
 | `converted` | 已完成的块数 |
 
 路径可用 `MGB_ROOT` / `MGB_PROXY_PORT` / `MGB_HEARTBEAT` 环境变量配置。

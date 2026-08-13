@@ -4,6 +4,13 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)。
 
+## [0.2.2] - 2026-08-13
+
+### 新增
+- **Token 用量日志**：`glm_mineru_proxy.py` 每次 GLM 响应后把该任务的 prompt /
+  completion token 数追加到日志文件（`MGB_PROXY_USAGE_LOG`，默认
+  `~/.mineru_glm_bridge/proxy_usage.log`）。只记任务名 + token 数 + 时间戳，不记内容。
+
 ## [0.2.1] - 2026-08-08
 
 ### 新增
@@ -14,8 +21,6 @@
 ### 修复
 - `mineru_local_batch.py` / `auto_convert.py` 输出嵌套：本地 `hybrid-http-client` 模式
   生成 `{文件名}/{backend}/...` 子目录，而非 `{原名}_mineru/full.md`。现已归位为文档规定的结构。
-
-## [0.2.0] - 2026-08-08
 
 ## [0.2.0] - 2026-08-08
 
@@ -42,8 +47,6 @@
 ### 修复
 - 8GB GPU / 16GB 内存笔记本上 hybrid 模式 OOM（worker 进程 + 本地模型超内存）。
 - 后台进程被会话销毁杀掉：`auto_convert.py` 和 GLM 代理改为脱离进程（`Start-Process`）。
-
-## [0.1.0] - 2026-08-07
 
 ## [0.1.0] - 2026-08-07
 

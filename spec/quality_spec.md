@@ -54,9 +54,6 @@
 ## 校验工具
 
 ```bash
-# 检查某文件转换输出
-python check_done.py --ready          # 列出全部转完可删的文件夹
-
 # 抽查 md 大小（空文件=转换失败）
 wc -c "{输出目录}/full.md"
 

@@ -143,6 +143,34 @@ setx MGB_MINERU_ENV "C:\path\to\your\mineru-env"
 python mineru_local_batch.py --limit 5
 ```
 
+### Batch conversion plan (`plan.json`)
+
+`mineru_local_batch.py` reads a plan at `{ROOT}/_mineru_tools/plan.json` that lists
+which files to convert and how to split them (page ranges, day-based scheduling).
+
+- **No plan?** If `plan.json` is missing, the script auto-scans `{ROOT}` for
+  `.pdf/.pptx/.doc/.docx` files and converts each as a whole — usable immediately.
+- **Full control?** Create the file yourself. Format:
+
+```json
+{
+  "days_normal": [
+    {
+      "day": 1,
+      "blocks": [
+        {"file": "C:\\docs\\book.pdf", "start": 1, "end": 200, "pages": 200}
+      ]
+    }
+  ]
+}
+```
+
+Each `block` is one chunk: `file` (absolute path), `start`/`end` (1-based page
+range — only used to name the output subfolder), `pages` (for the progress
+summary). Multi-block files keep their source folder and split output into
+`{name}_mineru/p{start}-{end}`; single-block files write straight to
+`{name}_mineru/`. Run with `--dry-run` to preview what will be converted.
+
 ## Serial-stability config (critical on ≤16 GB RAM)
 
 Hybrid mode forks multiple worker processes; on low-RAM machines it exhausts
@@ -159,26 +187,12 @@ set OMP_NUM_THREADS=1
 ```
 
 > Measured: serial hybrid converts a 109-page PDF in ~82 min (2 pages / ~90 s),
-> memory stays ~3.5 GB. `auto_convert.py` sets all of these automatically.
-
-## Complex-document split (cloud vs local)
-
-A pre-scan marks each PDF as **normal** (has text layer, few images) or
-**complex** (scanned / dense images / math formulas):
-
-| Type | Detect | Convert via |
-|---|---|---|
-| Normal | text layer present | local hybrid-http-client (free) |
-| **Complex** | no text layer / dense images / formulas | mineru.net cloud API (1000 pages/day) |
-
-`auto_convert.py` skips complex blocks and records them in
-`_mineru_tools/complex_list.md` for later cloud conversion via
-`mineru_day.py --complex`.
+> memory stays ~3.5 GB. `mineru_local_batch.py` sets all of these automatically.
 
 ## Watchdog (monitor for stalls)
 
 Long serial conversions can silently stall. Run the watchdog alongside
-`auto_convert.py` — it writes a heartbeat JSON every 30 s so an external
+`mineru_local_batch.py` — it writes a heartbeat JSON every 30 s so an external
 monitor (or you) can detect a dead or stuck process:
 
 ```bash
@@ -192,7 +206,7 @@ Heartbeat fields (`_mineru_tools/watchdog_heartbeat.json`):
 | `ts` | last heartbeat timestamp (stale if old) |
 | `glm_conns` | ESTABLISHED connections to the GLM proxy (0 + no outputs = stall) |
 | `fresh_outputs_10min` | `full.md` files written in the last 10 min |
-| `process_alive` | whether the `auto_convert` process is running |
+| `process_alive` | whether the `mineru_local_batch.py` process is running |
 | `converted` | blocks completed so far |
 
 Paths are configurable via `MGB_ROOT` / `MGB_PROXY_PORT` / `MGB_HEARTBEAT`.

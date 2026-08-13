@@ -48,6 +48,24 @@ def safe(name):
     return re.sub(r'[<>:"/\\|?*]', "_", name)
 
 
+def build_plan_from_files():
+    """plan.json 缺失时，递归扫描 ROOT 下文档自动生成计划（开箱即用）。
+
+    每文件一块（整篇转换），无分页切块；需要分页/分天调度时再手写 plan.json。
+    """
+    found = []
+    for root, dirs, files in os.walk(ROOT):
+        dirs[:] = [d for d in dirs if d not in ("_output", "_mineru_tools")]
+        for fn in files:
+            if fn.lower().endswith(EXTS):
+                found.append(os.path.join(root, fn))
+    found.sort()
+    if not found:
+        return None
+    blocks = [{"file": f, "start": 1, "end": 1, "pages": 0} for f in found]
+    return {"days_normal": [{"day": 1, "blocks": blocks}]}
+
+
 def is_done(out_dir):
     if not os.path.isdir(out_dir):
         return False
@@ -188,7 +206,17 @@ def main():
     if not dry_run:
         ensure_proxy()
 
-    plan = json.load(open(PLAN, encoding="utf-8"))
+    try:
+        plan = json.load(open(PLAN, encoding="utf-8"))
+    except FileNotFoundError:
+        print(f"[提示] 未找到计划文件 {PLAN}")
+        print("[提示] 自动扫描 ROOT 下文档生成计划（整篇转换）...")
+        plan = build_plan_from_files()
+        if plan is None:
+            print(f"[错误] {ROOT} 下未找到 {EXTS} 文档，无法批量转换")
+            print(f"[说明] 可创建 {PLAN} 指定分块/分天计划（格式见 README「批量转换计划」）")
+            sys.exit(1)
+        print(f"[提示] 扫描到 {len(plan['days_normal'][0]['blocks'])} 个文档")
     # 兼容新旧 plan 结构：v2 用 days_normal，旧版用 days
     days = plan.get("days_normal") or plan.get("days") or []
     blocks = []

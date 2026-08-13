@@ -24,6 +24,9 @@ MODEL = os.environ.get("GLM_MODEL", "glm-4.6v-flashx")
 PORT = int(os.environ.get("PROXY_PORT", "8031"))
 LOG_PATH = os.environ.get("MGB_PROXY_LOG",
                           os.path.join(os.path.expanduser("~"), ".mineru_glm_bridge", "proxy_req.log"))
+USAGE_LOG = os.environ.get(
+    "MGB_PROXY_USAGE_LOG",
+    os.path.join(os.path.expanduser("~"), ".mineru_glm_bridge", "proxy_usage.log"))
 
 # 全局限流：限制同时访问 GLM 的请求数，避免 429
 GLM_MAX_CONCURRENT = int(os.environ.get("GLM_MAX_CONCURRENT", "1"))
@@ -188,6 +191,16 @@ class Handler(BaseHTTPRequestHandler):
             try:
                 resp = opener.open(req, timeout=300)
                 data = json.loads(resp.read().decode())
+                # 记录 token 消耗（从 GLM 响应 usage 字段）
+                usage = data.get("usage", {}) if isinstance(data, dict) else {}
+                pt = usage.get("prompt_tokens", 0)
+                ct = usage.get("completion_tokens", 0)
+                try:
+                    with open(USAGE_LOG, "a", encoding="utf-8") as uf:
+                        uf.write(f"{time.strftime('%Y-%m-%d %H:%M:%S')} task={task} "
+                                 f"prompt={pt} completion={ct} total={pt + ct}\n")
+                except OSError:
+                    pass
                 out = json.dumps(data).encode()
                 self.send_response(200)
                 self.send_header("Content-Type", "application/json")

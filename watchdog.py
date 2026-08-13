@@ -7,7 +7,7 @@ mineru-glm-bridge 看门狗 — 检测转换是否卡死/推进，写心跳文�
   1. GLM 代理连接数（>0 = 在调 GLM）
   2. 输出目录 full.md 数量（产出增长）
   3. auto_progress converted 计数
-  4. auto_convert 进程存活
+  4. mineru_local_batch 进程存活
   5. 心跳时间戳（检测卡死：无心跳超时 = 卡住）
 
 环境变量:
@@ -76,8 +76,8 @@ def _proc_running_unix(cmd):
         return False
 
 
-def check_process(cmd="auto_convert"):
-    """检测 auto_convert 进程存活（跨平台）"""
+def check_process(cmd="mineru_local_batch"):
+    """检测转换进程存活（跨平台，默认 mineru_local_batch.py）"""
     if sys.platform == "win32":
         return _proc_running_win(cmd)
     return _proc_running_unix(cmd)
