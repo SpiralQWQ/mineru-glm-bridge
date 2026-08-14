@@ -255,7 +255,8 @@ and extend the runtime window.
 Bug reports, feature ideas and pull requests are welcome. Please open an
 [Issue](https://github.com/SpiralQWQ/mineru-glm-bridge/issues) first to discuss
 larger changes, and keep contributions compatible with the dual AGPL-3.0 /
-commercial licensing.
+commercial licensing. See [CONTRIBUTING.md](CONTRIBUTING.md) for the full
+guide.
 
 ## Quality comparison (measured, 10-page PDF)
 

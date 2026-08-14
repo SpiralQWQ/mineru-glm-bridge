@@ -247,7 +247,8 @@ A：每页都要跑本地 OCR/版面模型 + 一次 GLM 云端往返，且限流
 
 欢迎提交 bug 报告、功能建议与 PR。较大改动请先开
 [Issue](https://github.com/SpiralQWQ/mineru-glm-bridge/issues) 讨论，并保持
-与双许可（AGPL-3.0 / 商业授权）兼容。
+与双许可（AGPL-3.0 / 商业授权）兼容。完整指南见
+[CONTRIBUTING.md](CONTRIBUTING.md)。
 
 ## 质量对比（实测 10 页 PDF）
 

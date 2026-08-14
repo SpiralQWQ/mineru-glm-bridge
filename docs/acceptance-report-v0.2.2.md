@@ -12,7 +12,7 @@
 | 文档：README 中英双语 | ✅ | README.md / README_zh.md（徽章/特性/安装/配置/快速开始/FAQ/Roadmap） |
 | 文档：CHANGELOG Keep-a-Changelog | ✅ | CHANGELOG.md / CHANGELOG_zh.md，版本史 0.1.0→0.2.2 连续 |
 | 文档：LICENSE | ✅ | AGPL-3.0 + COMMERCIAL.md 双许可 |
-| 文档：CONTRIBUTING.md | ✅ | 已有 |
+| 文档：CONTRIBUTING.md | ✅ | 本轮补建（原报告误标「已有」，实为缺失，2026-08-14 已补建并接入 README） |
 | 文档：CODE_OF_CONDUCT.md | ✅ | 本轮新增（Contributor Covenant 2.1） |
 
 ## 加分项
