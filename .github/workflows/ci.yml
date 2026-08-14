@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  test:
+    name: Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Compile all sources
+        run: python -m py_compile glm_mineru_proxy.py mineru_local_batch.py watchdog.py
+
+      - name: Import smoke (no GLM_API_KEY required)
+        run: |
+          python -c "import glm_mineru_proxy; print('glm_mineru_proxy OK')"
+          python -c "import mineru_local_batch; print('mineru_local_batch OK')"
+          python -c "import watchdog; print('watchdog OK')"
+
+      - name: Privacy guard (no internal paths / secrets)
+        run: |
+          python - <<'PY'
+          import pathlib, re, sys
+          BAD = [r"E:\\", r"D:\\", r"C:\\Users", r"/Users/[A-Za-z]", r"AAA\.Program", r"M\.AIStudy", r"M\.DouYinStudy", r"\bsk-[A-Za-z0-9_-]{20,}"]
+          hits = []
+          for p in pathlib.Path(".").rglob("*"):
+              if not p.is_file() or ".git" in p.parts or ".github" in p.parts:
+                  continue
+              if p.suffix in {".png", ".jpg", ".jpeg", ".gif", ".webp", ".ico", ".db", ".pyc", ".bat"}:
+                  continue
+              try:
+                  s = p.read_text(encoding="utf-8", errors="ignore")
+              except Exception:
+                  continue
+              for pat in BAD:
+                  if re.search(pat, s):
+                      hits.append(f"{p}: {pat!r}")
+          if hits:
+              print("Privacy guard found leaks:\n" + "\n".join(hits))
+              sys.exit(1)
+          print("Privacy guard OK")
+          PY
