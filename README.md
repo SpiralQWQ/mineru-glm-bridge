@@ -3,9 +3,32 @@
 ![Version](https://img.shields.io/badge/version-0.2.2-blue)
 ![License](https://img.shields.io/badge/license-AGPL--3.0-green)
 
+<p align="center"><kbd>English</kbd> · <a href="README_zh.md"><kbd>中文</kbd></a></p>
+
 Bridge MinerU's document parsing to GLM (Zhipu AI) cloud vision models — so
 consumer laptops can run full MinerU parsing without an 8GB+ GPU and without
 burning the mineru.net daily 1000-page quota.
+
+
+## Table of Contents
+
+- [The problem it solves](#the-problem-it-solves)
+- [Two modes](#two-modes)
+- [Architecture](#architecture)
+- [Files](#files)
+- [Installation](#installation)
+- [Quick start](#quick-start)
+- [Serial-stability config (critical on ≤16 GB RAM)](#serial-stability-config-critical-on-16-gb-ram)
+- [Watchdog (monitor for stalls)](#watchdog-monitor-for-stalls)
+- [Configuration](#configuration)
+- [FAQ](#faq)
+- [Contribution](#contribution)
+- [Quality comparison (measured, 10-page PDF)](#quality-comparison-measured-10-page-pdf)
+- [Requirements](#requirements)
+- [Support](#support)
+- [License](#license)
+- [Changelog](#changelog)
+
 
 ## The problem it solves
 
